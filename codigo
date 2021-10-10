@@ -1,0 +1,88 @@
+#define ldr A5 // sensor de luz no pino de entrada analógico A5 com fio amarelo
+#define echo 5 // leitor ultrassônico no pino 5 com fio turquesa
+#define trigger 6 // disparo ultrassônico no pino 6 com fio azul
+#define ledred 2 // led vermelho no pino 2 com fio laranja
+#define ledgreen 4 // led verde no pino 4 com fio verde
+#define enable1 9 //Ligado ao pino 1 do L293D
+#define entrada1 8 //Ligado ao pino 2 do L293D
+#define entrada2 7 //Ligado ao pino 7 do L293D
+#define enable2 11 //Ligado ao pino 9 do L293D
+#define entrada3 12 //Ligado ao pino 10 do L293D
+#define entrada4 13 //Ligado ao pino 15 do L293D
+
+int leitura; // variável que vai ler o sensor de luz
+float duration, distance; // variáveis que receberão valores de duração do som e cálculo da distância percorrida
+
+void setup()
+{
+  pinMode(trigger, OUTPUT); // disparo ultrassônico como saída
+  pinMode(echo, INPUT); // leitor ultrassônico como entrada
+  pinMode(ledred, OUTPUT); // led vermelho como saída
+  pinMode(ledgreen, OUTPUT); // led verde como saída
+  pinMode(enable1, OUTPUT); // conectando o motor 1 como saída
+  pinMode(entrada1, OUTPUT);
+  pinMode(entrada2, OUTPUT);
+  pinMode(enable2, OUTPUT); // conectando o motor 2 como saída
+  pinMode(entrada3, OUTPUT);
+  pinMode(entrada4, OUTPUT);
+  Serial.begin(9600); // iniciei o serial para monitorar depois
+
+}
+
+void loop() {
+  digitalWrite(trigger, LOW); // desliguei o disparo para ter certeza que não há interferência
+  delayMicroseconds(2);
+  digitalWrite(trigger, HIGH); // acionei o disparo
+  delayMicroseconds(10);
+  digitalWrite(trigger, LOW); // desliguei o disparo
+  duration = pulseIn(echo, HIGH); // salvei a duração do som
+  distance = (duration*.0343)/2; // calculei a distância com base na duração do disparo
+  Serial.print("Distance: ");  
+  Serial.println(distance); // imprimindo a distância em centímetros no monitor
+  delay(100);
+  Serial.print("Duration: ");  
+  Serial.println(duration);
+  delay(100);
+  
+  leitura = analogRead(ldr); // o valor do sensor de luz está sendo salvo na variável
+  Serial.print("Entrada de luz: "); 
+  Serial.println(leitura); // imprimindo no monitor o valor de entrada de luz
+  
+  if(leitura < 900 && distance >= 30) {
+    digitalWrite(ledred, LOW); // desligando led vermelho
+	digitalWrite(ledgreen, HIGH); // ligando led verde
+    digitalWrite(enable1, HIGH); // liguei o motor 1
+    digitalWrite(entrada1, HIGH);
+    digitalWrite(entrada2, LOW);
+    digitalWrite(enable2, HIGH); // liguei o motor 2
+    digitalWrite(entrada3, HIGH);
+    digitalWrite(entrada4, LOW);
+  } else if (leitura < 900 && distance < 30) {
+    digitalWrite(ledred, HIGH); //liguei led vermelho
+    digitalWrite(ledgreen, LOW); // apaguei led verde
+    digitalWrite(enable1, LOW); //parei o motor 1
+    digitalWrite(enable2, LOW); //parei o motor 2
+    digitalWrite(enable1, HIGH); // liguei o motor 1
+    digitalWrite(entrada1, LOW); 
+    digitalWrite(entrada2, HIGH); // inverti a rotação para dar ré
+    digitalWrite(enable2, HIGH); // liguei o motor 2
+    digitalWrite(entrada3, LOW);
+    digitalWrite(entrada4, HIGH);// inverti a rotação para dar ré
+    delay(4000);
+    digitalWrite(enable1, LOW); //parei o motor 1
+    digitalWrite(enable2, LOW); //parei o motor 2
+    digitalWrite(enable2, HIGH); // liguei o motor 2 com o 1 parado para fazer a curva
+    digitalWrite(entrada3, LOW);
+    digitalWrite(entrada4, HIGH);
+    delay(3000);
+    digitalWrite(enable1, HIGH); // liguei o motor 1
+    digitalWrite(entrada1, HIGH);
+    digitalWrite(entrada2, LOW);
+    digitalWrite(enable2, HIGH); // liguei o motor 2
+    digitalWrite(entrada3, HIGH);
+    digitalWrite(entrada4, LOW);
+  }else{
+    digitalWrite(enable1, LOW); //para o motor 1
+    digitalWrite(enable2, LOW); //para o motor 2
+  }
+}
